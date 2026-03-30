@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch - Stream Pro Max</title>
+  <style>
+    :root {
+      --bg: #0d0d11;
+      --panel: #17171e;
+      --panel-2: #20202a;
+      --text: #ffffff;
+      --muted: #9f9fa7;
+      --red: #e50914;
+      --green: #2db37c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 22px;
+      background: #000000a3;
+      border-bottom: 1px solid #292932;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(4px);
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--red);
+      text-decoration: none;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mini-search {
+      border: 1px solid #3a3a48;
+      background: var(--panel-2);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      width: 210px;
+      outline: none;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+      padding: 16px;
+    }
+
+    .player-card {
+      background: var(--panel);
+      border: 1px solid #2c2c36;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .player-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #000;
+    }
+
+    #player {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .meta {
+      padding: 14px 16px 16px;
+    }
+
+    .meta h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    .meta p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .chips {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: #292936;
+      color: #fff;
+      border: 1px solid #383848;
+      border-radius: 999px;
+      font-size: 12px;
+      padding: 6px 10px;
+      display: inline-block;
+    }
+
+    .chip.active {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .side {
+      background: var(--panel);
+      border: 1px solid #2c2c36;
+      border-radius: 12px;
+      padding: 14px;
+      height: fit-content;
+      position: sticky;
+      top: 72px;
+    }
+
+    .side h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status-box {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #353543;
+      background: #1b1b23;
+      font-size: 12px;
+      color: #d8d8dc;
+      min-height: 40px;
+    }
+
+    button, select {
+      border: 1px solid #3a3a48;
+      background: var(--panel-2);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    button:hover, select:hover {
+      border-color: #676781;
+    }
+
+    #epGrid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .ep-btn {
+      text-align: center;
+      font-size: 12px;
+      padding: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #3d3d4b;
+      background: #22222d;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .ep-btn.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+    }
+
+    @media (max-width: 620px) {
+      #epGrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">JOYFLIX</a>
+    <div class="topbar-actions">
+      <a href="index.html#auth" id="authWatchLink" style="color:#fff;text-decoration:none;font-size:14px;padding:8px 0;">Account</a>
+      <input id="quickSearch" class="mini-search" type="text" placeholder="Search and go home">
+      <button onclick="goSearch()">Search</button>
+      <button onclick="location.href='index.html'">Back to Home</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="player-card">
+      <div class="player-wrap">
+        <iframe
+          id="player"
+          allowfullscreen
+          allow="autoplay; encrypted-media; fullscreen"
+          referrerpolicy="no-referrer"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+        ></iframe>
+      </div>
+      <div class="meta">
+        <h1 id="title">Now Playing</h1>
+        <p id="subMeta">Loading player...</p>
+        <div class="chips">
+          <span class="chip active" id="server1">Server 1</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <h3>Episode Controller</h3>
+      <div class="controls">
+        <button id="autoplayBtn" onclick="toggleOption('autoPlay')">AutoPlay: ON</button>
+        <button id="nextEpBtn" onclick="toggleOption('nextEpisode')">Next Episode: ON</button>
+        <button id="selectorBtn" onclick="toggleOption('episodeSelector')">Episode Selector: ON</button>
+      </div>
+      <div class="controls">
+        <select id="seasonSelect"></select>
+        <button onclick="prevEpisode()">Prev</button>
+        <button onclick="nextEpisode()">Next</button>
+        <button onclick="loadPlayer()">Reload Player</button>
+      </div>
+      <div id="epGrid"></div>
+      <div class="status-box" id="messageArea">Player events অপেক্ষায়...</div>
+      <p class="muted" id="hintText">
+        TV series হলে season/episode server থেকে real count নিয়ে আসবে। পপআপ ব্লক + iframe sandbox (allow-popups নেই) embed থেকে নতুন ট্যাব কমায়; ভিডিও না চললে আমাদের জানাও।
+      </p>
+    </aside>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/watch-history.js"></script>
+  <script>
+    (function watchPageAdBlock() {
+      "use strict";
+
+      const AD_URL_RE =
+        /doubleclick|googlesyndication|googleadservices|pagead2|g\.doubleclick|adservice|adtraffic|adnxs|advertising\.com|amazon-adsystem|taboola|outbrain|popads|exoclick|trafficjunky|adtng|2mdn|propeller|clickadu|adform|adsystem|popcash|adkernel|adskeeper|adsafeprotected|popunder|admatic|fundingchoices|realsrv|syndication|pu_redirect|bannerid|zoneid|scorecardresearch|quantserve|moatads|criteo|yandex\.ru\/ads|clk\.|click_id=|utm_medium=cpc|adserver|adglare|adsterra|propellerads/i;
+
+      function isAdUrl(url) {
+        if (url == null || url === "") return false;
+        return AD_URL_RE.test(String(url));
+      }
+
+      function blockOpen() {
+        return null;
+      }
+
+      try {
+        Object.defineProperty(window, "open", {
+          value: blockOpen,
+          writable: false,
+          configurable: true
+        });
+      } catch (e) {
+        window.open = blockOpen;
+      }
+
+      const origFetch = window.fetch;
+      window.fetch = function (input, init) {
+        const u = typeof input === "string" ? input : input && input.url;
+        if (isAdUrl(u)) return Promise.reject(new TypeError("Ad request blocked"));
+        return origFetch.apply(window, arguments);
+      };
+
+      const origXhrOpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        if (isAdUrl(url)) throw new TypeError("Ad request blocked");
+        return origXhrOpen.apply(this, arguments);
+      };
+
+      function killAdLink(e) {
+        const a = e.target && e.target.closest && e.target.closest("a[href]");
+        if (!a) return;
+        const href = a.getAttribute("href");
+        if (href && isAdUrl(href)) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }
+
+      document.addEventListener("click", killAdLink, true);
+      document.addEventListener("auxclick", killAdLink, true);
+      document.addEventListener("mousedown", killAdLink, true);
+
+      function srcFromEl(el) {
+        if (!el) return "";
+        if (el.src) return el.src;
+        if (el.tagName === "OBJECT" && el.getAttribute("data")) return el.getAttribute("data");
+        return "";
+      }
+
+      function removeAdNodes(root) {
+        if (!root || !root.querySelectorAll) return;
+        root.querySelectorAll("iframe[src], script[src], embed[src], object[data]").forEach(function (el) {
+          if (isAdUrl(srcFromEl(el))) el.remove();
+        });
+      }
+
+      const mo = new MutationObserver(function (records) {
+        records.forEach(function (r) {
+          r.addedNodes.forEach(function (n) {
+            if (n.nodeType !== 1) return;
+            const tag = n.tagName;
+            if (
+              (tag === "IFRAME" || tag === "SCRIPT" || tag === "EMBED" || tag === "OBJECT") &&
+              isAdUrl(srcFromEl(n))
+            ) {
+              n.remove();
+              return;
+            }
+            removeAdNodes(n);
+          });
+        });
+      });
+
+      function startMo() {
+        if (!document.body) return;
+        mo.observe(document.body, { childList: true, subtree: true });
+        removeAdNodes(document.body);
+      }
+      if (document.body) startMo();
+      else document.addEventListener("DOMContentLoaded", startMo);
+    })();
+
+    const API_BASE = "https://flex-production-c95d.up.railway.app";
+    const params = new URLSearchParams(location.search);
+    const idDigits = String(params.get("id") || "550").replace(/\D/g, "");
+    const id = idDigits || "550";
+    const mediaType = (params.get("type") || "").toLowerCase();
+    const explicitMovie = mediaType === "movie" || mediaType === "film";
+    const explicitTv = mediaType === "tv" || mediaType === "series" || mediaType === "show";
+    let isTv = explicitTv && !explicitMovie;
+    const title = params.get("title") || (isTv ? `TV Show #${id}` : `Title #${id}`);
+
+    let currentSeason = 1;
+    let currentEpisode = Number(params.get("ep")) || 1;
+    let totalSeasons = 1;
+    let currentEpisodes = [];
+    let posterUrl = "";
+
+    const titleEl = document.getElementById("title");
+    const subMetaEl = document.getElementById("subMeta");
+    const playerEl = document.getElementById("player");
+    const seasonEl = document.getElementById("seasonSelect");
+    const epGridEl = document.getElementById("epGrid");
+    const hintTextEl = document.getElementById("hintText");
+    const messageAreaEl = document.getElementById("messageArea");
+    const autoplayBtnEl = document.getElementById("autoplayBtn");
+    const nextEpBtnEl = document.getElementById("nextEpBtn");
+    const selectorBtnEl = document.getElementById("selectorBtn");
+
+    const playerOptions = {
+      autoPlay: true,
+      nextEpisode: true,
+      episodeSelector: true
+    };
+
+    function getProgressStorageKey() {
+      return isTv
+        ? `progress:tv:${id}:s${currentSeason}:e${currentEpisode}`
+        : `progress:movie:${id}`;
+    }
+
+    function readSavedProgress() {
+      const raw = localStorage.getItem(getProgressStorageKey());
+      if (!raw) return 0;
+      try {
+        const parsed = JSON.parse(raw);
+        return Math.max(0, Number(parsed.currentTime || 0));
+      } catch {
+        return 0;
+      }
+    }
+
+    titleEl.textContent = title;
+
+    function buildSeasonOptions() {
+      seasonEl.innerHTML = "";
+      for (let s = 1; s <= totalSeasons; s++) {
+        const op = document.createElement("option");
+        op.value = String(s);
+        op.textContent = `Season ${s}`;
+        seasonEl.appendChild(op);
+      }
+      seasonEl.value = String(currentSeason);
+      seasonEl.onchange = () => {
+        currentSeason = Number(seasonEl.value);
+        currentEpisode = 1;
+        loadSeasonEpisodes(currentSeason);
+      };
+    }
+
+    function makeEmbedUrl() {
+      const progressValue = Math.floor(Number(readSavedProgress() || 0));
+      const query = new URLSearchParams({
+        color: "e50914",
+        autoPlay: String(playerOptions.autoPlay),
+        nextEpisode: String(playerOptions.nextEpisode),
+        episodeSelector: String(playerOptions.episodeSelector),
+        ...(progressValue > 0 && { progress: String(progressValue) })
+      }).toString();
+      return isTv
+        ? `${API_BASE}/player/tv/${id}/${currentSeason}/${currentEpisode}?${query}`
+        : `${API_BASE}/player/movie/${id}?${query}`;
+    }
+
+    function loadPlayer() {
+      playerEl.src = makeEmbedUrl();
+      subMetaEl.textContent = isTv
+        ? `Type: TV Series | Season ${currentSeason} Episode ${currentEpisode}`
+        : `Type: Movie`;
+      if (typeof saveWatchHistoryEntry === "function") {
+        saveWatchHistoryEntry({
+          id,
+          title: titleEl.textContent,
+          isTv,
+          season: currentSeason,
+          episode: currentEpisode,
+          imageUrl: posterUrl
+        });
+      }
+    }
+
+    function renderEpisodes() {
+      epGridEl.innerHTML = "";
+      if (!isTv) {
+        seasonEl.style.display = "none";
+        epGridEl.style.display = "none";
+        hintTextEl.textContent = "This title is a movie. Episode selector is disabled.";
+        return;
+      }
+
+      seasonEl.style.display = "inline-block";
+      epGridEl.style.display = "grid";
+      hintTextEl.textContent = "Select episode number directly, or use Prev / Next buttons.";
+
+      currentEpisodes.forEach((epItem, idx) => {
+        const epNum = Number(epItem.episode_number || idx + 1);
+        const box = document.createElement("div");
+        box.className = `ep-btn ${epNum === currentEpisode ? "active" : ""}`;
+        box.textContent = `EP ${epNum}`;
+        if (epItem.name) box.title = epItem.name;
+        box.onclick = () => {
+          currentEpisode = epNum;
+          renderEpisodes();
+          loadPlayer();
+        };
+        epGridEl.appendChild(box);
+      });
+    }
+
+    function nextEpisode() {
+      if (!isTv) return;
+      if (!currentEpisodes.length) return;
+      const idx = currentEpisodes.findIndex((e, i) => Number(e.episode_number || i + 1) === currentEpisode);
+      const nextIdx = idx >= currentEpisodes.length - 1 ? 0 : idx + 1;
+      currentEpisode = Number(currentEpisodes[nextIdx].episode_number || nextIdx + 1);
+      renderEpisodes();
+      loadPlayer();
+    }
+
+    function prevEpisode() {
+      if (!isTv) return;
+      if (!currentEpisodes.length) return;
+      const idx = currentEpisodes.findIndex((e, i) => Number(e.episode_number || i + 1) === currentEpisode);
+      const prevIdx = idx <= 0 ? currentEpisodes.length - 1 : idx - 1;
+      currentEpisode = Number(currentEpisodes[prevIdx].episode_number || prevIdx + 1);
+      renderEpisodes();
+      loadPlayer();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!isTv) return;
+      if (e.key === "ArrowRight") nextEpisode();
+      if (e.key === "ArrowLeft") prevEpisode();
+    });
+
+    function goSearch() {
+      const q = document.getElementById("quickSearch").value.trim();
+      if (!q) {
+        location.href = "index.html";
+        return;
+      }
+      location.href = `index.html?q=${encodeURIComponent(q)}`;
+    }
+
+    function renderOptionButtons() {
+      autoplayBtnEl.textContent = `AutoPlay: ${playerOptions.autoPlay ? "ON" : "OFF"}`;
+      nextEpBtnEl.textContent = `Next Episode: ${playerOptions.nextEpisode ? "ON" : "OFF"}`;
+      selectorBtnEl.textContent = `Episode Selector: ${playerOptions.episodeSelector ? "ON" : "OFF"}`;
+    }
+
+    function toggleOption(key) {
+      playerOptions[key] = !playerOptions[key];
+      renderOptionButtons();
+      loadPlayer();
+    }
+
+    async function loadSeasonEpisodes(seasonNumber) {
+      try {
+        const res = await fetch(`${API_BASE}/tv/${id}/season/${seasonNumber}`);
+        if (!res.ok) throw new Error("season episodes fetch failed");
+        const data = await res.json();
+        currentEpisodes = Array.isArray(data) ? data : [];
+        if (!currentEpisodes.length) {
+          currentEpisodes = [{ episode_number: 1, name: "Episode 1" }];
+        }
+        if (!currentEpisodes.some((e, i) => Number(e.episode_number || i + 1) === currentEpisode)) {
+          currentEpisode = Number(currentEpisodes[0].episode_number || 1);
+        }
+        renderEpisodes();
+        loadPlayer();
+      } catch (err) {
+        const fallbackCount = Number(params.get("epCount")) || 24;
+        currentEpisodes = Array.from({ length: fallbackCount }, (_, i) => ({
+          episode_number: i + 1,
+          name: `Episode ${i + 1}`
+        }));
+        currentEpisode = Math.min(Math.max(currentEpisode, 1), fallbackCount);
+        hintTextEl.textContent = "Episode list server থেকে load করা যায়নি, fallback episode list দেখানো হচ্ছে।";
+        renderEpisodes();
+        loadPlayer();
+      }
+    }
+
+    window.addEventListener("message", (event) => {
+      let payload = event.data;
+      if (typeof payload === "string") {
+        try {
+          payload = JSON.parse(payload);
+        } catch {
+          return;
+        }
+      }
+      if (!payload || payload.type !== "PLAYER_EVENT" || !payload.data) return;
+
+      const d = payload.data;
+      const storageKey = isTv
+        ? `progress:tv:${d.id || id}:s${d.season || currentSeason}:e${d.episode || currentEpisode}`
+        : `progress:movie:${d.id || id}`;
+
+      localStorage.setItem(storageKey, JSON.stringify({
+        event: d.event,
+        currentTime: d.currentTime,
+        duration: d.duration,
+        progress: d.progress,
+        timestamp: d.timestamp
+      }));
+
+      messageAreaEl.textContent =
+        `Event: ${d.event} | ${(d.currentTime || 0).toFixed(1)}s / ${(d.duration || 0).toFixed(1)}s | ${Math.floor(d.progress || 0)}%`;
+    });
+
+    async function initMovieMode() {
+      isTv = false;
+      try {
+        const mRes = await fetch(`${API_BASE}/movie/${id}`);
+        if (mRes.ok) {
+          const mData = await mRes.json();
+          if (mData && mData.title && !params.get("title")) {
+            titleEl.textContent = mData.title;
+          }
+          if (mData.image) {
+            posterUrl = mData.image;
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+      hintTextEl.textContent = "Movie mode. TV হলে URL এ type=tv দিন.";
+      renderEpisodes();
+      loadPlayer();
+    }
+
+    async function initTvMode(tvInfoLoaded) {
+      if (!tvInfoLoaded) {
+        totalSeasons = Number(params.get("seasonCount")) || 6;
+        hintTextEl.textContent = "Season info server থেকে load করা যায়নি, fallback season list দেখানো হচ্ছে।";
+      }
+      buildSeasonOptions();
+      await loadSeasonEpisodes(currentSeason);
+    }
+
+    async function init() {
+      if (explicitMovie) {
+        await initMovieMode();
+        return;
+      }
+
+      if (explicitTv) {
+        let tvInfoLoaded = false;
+        try {
+          const tvRes = await fetch(`${API_BASE}/tv/${id}`);
+          if (tvRes.ok) {
+            const tvData = await tvRes.json();
+            if (tvData && !tvData.error) {
+              tvInfoLoaded = true;
+              if (tvData.name && !params.get("title")) {
+                titleEl.textContent = tvData.name;
+              }
+              totalSeasons = Math.max(1, Number(tvData.number_of_seasons || 1));
+              if (tvData.image) {
+                posterUrl = tvData.image;
+              }
+            }
+          }
+        } catch (err) {
+          // ignore
+        }
+        await initTvMode(tvInfoLoaded);
+        return;
+      }
+
+      let movieOk = false;
+      try {
+        const mRes = await fetch(`${API_BASE}/movie/${id}`);
+        if (mRes.ok) {
+          const mData = await mRes.json();
+          if (mData && mData.id && (mData.title || mData.original_title)) {
+            movieOk = true;
+            isTv = false;
+            if (!params.get("title")) {
+              titleEl.textContent = mData.title || mData.original_title;
+            }
+            if (mData.image) {
+              posterUrl = mData.image;
+            }
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      if (movieOk) {
+        await initMovieMode();
+        return;
+      }
+
+      let tvInfoLoaded = false;
+      try {
+        const tvRes = await fetch(`${API_BASE}/tv/${id}`);
+        if (tvRes.ok) {
+          const tvData = await tvRes.json();
+          if (tvData && !tvData.error && (tvData.name || tvData.number_of_seasons != null)) {
+            isTv = true;
+            tvInfoLoaded = true;
+            if (tvData.name && !params.get("title")) {
+              titleEl.textContent = tvData.name;
+            }
+            totalSeasons = Math.max(1, Number(tvData.number_of_seasons || 1));
+            if (tvData.image) {
+              posterUrl = tvData.image;
+            }
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      if (!isTv) {
+        await initMovieMode();
+        return;
+      }
+
+      await initTvMode(tvInfoLoaded);
+    }
+
+    (function enableInspectRefreshGuard() {
+      const THRESHOLD = 160;
+      let refreshLock = false;
+
+      function isDevtoolsOpen() {
+        const bySize =
+          window.outerWidth - window.innerWidth > THRESHOLD ||
+          window.outerHeight - window.innerHeight > THRESHOLD;
+        return bySize;
+      }
+
+      setInterval(() => {
+        if (refreshLock) return;
+        if (isDevtoolsOpen()) {
+          refreshLock = true;
+          location.reload();
+        }
+      }, 333);
+    })();
+
+    renderOptionButtons();
+    init();
+
+    (function authWatchNav() {
+      if (typeof firebase === "undefined" || !firebase.apps || !firebase.apps.length) return;
+      var link = document.getElementById("authWatchLink");
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (link) link.textContent = user ? (user.email || "Account") : "Sign In";
+      });
+    })();
+  </script>
+</body>
+</html>

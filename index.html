@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOYFLIX</title>
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --bg-soft: #1a1a1f;
+      --text: #ffffff;
+      --muted: #b3b3b3;
+      --red: #e50914;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      background: linear-gradient(to bottom, #000000f2, #00000080);
+      backdrop-filter: blur(3px);
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: 1px;
+    }
+
+    .menu {
+      display: flex;
+      gap: 18px;
+      color: #dddddd;
+      font-size: 14px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 220px;
+      background: #1b1b22;
+      border: 1px solid #343443;
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: #77779b;
+    }
+
+    .search-btn {
+      border: 0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--red);
+      color: #fff;
+    }
+
+    .live-search-box {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 320px;
+      max-height: 380px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid #2e2e3a;
+      background: #14141a;
+      box-shadow: 0 10px 30px #00000099;
+      z-index: 50;
+      display: none;
+    }
+
+    .live-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #262631;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .live-item:last-child {
+      border-bottom: none;
+    }
+
+    .live-item:hover {
+      background: #1f1f27;
+    }
+
+    .live-item img {
+      width: 44px;
+      height: 62px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #202028;
+    }
+
+    .live-item span {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .hero {
+      min-height: 440px;
+      padding: 56px 32px;
+      display: flex;
+      align-items: center;
+      background:
+        linear-gradient(to right, #000000f2 25%, #00000066 60%, #000000d9 100%),
+        url("https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
+      border-bottom: 1px solid #24242b;
+    }
+
+    .hero-content {
+      max-width: 560px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 42px;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #ffffff29;
+      color: #fff;
+    }
+
+    .section {
+      padding: 24px 32px 0;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--bg-soft);
+      border-radius: 10px;
+      overflow: hidden;
+      text-decoration: none;
+      color: #fff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid #2b2b33;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px #00000080;
+    }
+
+    .poster {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      display: block;
+      background: #1b1b1b;
+    }
+
+    .card-body {
+      padding: 10px;
+    }
+
+    .title {
+      margin: 0 0 6px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer-space {
+      height: 30px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .btn-nav-auth {
+      border: 1px solid #555;
+      background: #1a1a22;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-nav-auth:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .auth-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .auth-modal.open {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .auth-backdrop {
+      position: absolute;
+      inset: 0;
+      background: #000000cc;
+      cursor: pointer;
+    }
+
+    .auth-dialog {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      background: #14141a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 28px 28px 22px;
+      box-shadow: 0 20px 50px #000000cc;
+    }
+
+    .auth-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      border: none;
+      background: none;
+      color: #888;
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .auth-close:hover {
+      color: #fff;
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 16px;
+    }
+
+    .auth-tabs button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+
+    .auth-tabs button.active {
+      color: #fff;
+      border-bottom-color: var(--red);
+    }
+
+    .auth-panel {
+      display: none;
+    }
+
+    .auth-panel.active {
+      display: block;
+    }
+
+    .auth-label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #0f0f14;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .auth-submit {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background: var(--red);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .auth-submit:hover {
+      filter: brightness(1.06);
+    }
+
+    .auth-divider {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 16px 0;
+    }
+
+    .btn-oauth {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-oauth.google {
+      background: #fff;
+      color: #444;
+    }
+
+    .btn-oauth.github {
+      background: #24292f;
+      color: #fff;
+      border-color: #24292f;
+    }
+
+    .auth-err {
+      color: #e87c03;
+      font-size: 13px;
+      min-height: 20px;
+      margin-bottom: 8px;
+    }
+
+    .auth-userbox {
+      text-align: center;
+    }
+
+    .auth-userbox p {
+      color: var(--muted);
+      margin: 0 0 16px;
+      word-break: break-all;
+    }
+
+    .auth-signout {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: transparent;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .menu {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .search-wrap {
+        order: 1;
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .search-input {
+        width: 100%;
+        max-width: none;
+      }
+
+      .hero {
+        padding: 32px 16px;
+        min-height: 300px;
+      }
+
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero p {
+        font-size: 14px;
+      }
+
+      .section {
+        padding: 16px;
+      }
+
+      .row {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+      }
+
+      .card-body {
+        padding: 8px;
+      }
+
+      .title {
+        font-size: 13px;
+      }
+
+      .meta {
+        font-size: 11px;
+      }
+
+      .auth-modal {
+        padding: 10px;
+      }
+
+      .auth-dialog {
+        max-width: none;
+        padding: 20px 16px;
+      }
+
+      .btn-oauth {
+        font-size: 13px;
+        padding: 10px 12px;
+      }
+
+      .auth-input {
+        padding: 10px 12px;
+      }
+
+      .live-search-box {
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .row {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
+
+      .logo {
+        font-size: 20px;
+      }
+
+      .btn-nav-auth {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">JOYFLIX</div>
+    <nav class="menu">
+      <button type="button" class="btn-nav-auth" id="authNavBtn">Sign In</button>
+      <div class="search-wrap">
+        <input id="searchInput" class="search-input" type="text" placeholder="Search movie / anime">
+        <button id="searchBtn" class="search-btn" type="button">Search</button>
+        <div id="liveSearchBox" class="live-search-box"></div>
+      </div>
+    </nav>
+  </header>
+
+  <section class="section" id="continueSection" style="display:none;">
+    <h2>Continue Watching</h2>
+    <div class="row" id="continueRow"></div>
+  </section>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Watch Unlimited Anime & Movies</h1>
+      <p>
+        Watch anime and movies without limits, with smooth performance, easy navigation,
+               and a next-level viewing experience.
+      </p>
+      <div class="hero-buttons">
+        <button class="btn btn-secondary" onclick="window.scrollTo({ top: 530, behavior: 'smooth' })">Browse</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="searchSection" style="display:none;">
+    <h2>Search Results</h2>
+    <div class="row" id="searchResults"></div>
+    <p class="status" id="searchStatus"></p>
+  </section>
+
+  <section class="section">
+    <h2>Trending Now</h2>
+    <div class="row" id="trending"></div>
+  </section>
+
+  <section class="section">
+    <h2>Top Picks For You</h2>
+    <div class="row" id="topPicks"></div>
+  </section>
+
+  <section class="section">
+    <h2>Popular Anime Series</h2>
+    <div class="row" id="animeSeries"></div>
+  </section>
+
+  <div class="footer-space"></div>
+
+  <div id="authModal" class="auth-modal" aria-hidden="true">
+    <div class="auth-backdrop" id="authBackdrop"></div>
+    <div class="auth-dialog" role="dialog" aria-labelledby="authTitle">
+      <button type="button" class="auth-close" id="authClose" aria-label="Close">&times;</button>
+      <div class="logo" id="authTitle" style="margin-bottom:16px;">JOYFLIX</div>
+
+      <div id="authLoggedOut">
+        <div class="auth-tabs">
+          <button type="button" id="tabSignIn" class="active">Sign In</button>
+          <button type="button" id="tabSignUp">Sign Up</button>
+        </div>
+        <div class="auth-err" id="authErr"></div>
+        <button type="button" class="btn-oauth google" id="btnGoogle">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider">or use email</div>
+        <div id="panelSignIn" class="auth-panel active">
+          <label class="auth-label">Email</label>
+          <input type="email" class="auth-input" id="inEmail" autocomplete="email" placeholder="you@example.com">
+          <label class="auth-label">Password</label>
+          <input type="password" class="auth-input" id="inPass" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="auth-submit" id="btnEmailSignIn">Sign In</button>
+        </div>
+        <div id="panelSignUp" class="auth-panel">
+          <label class="auth-label">Email</label>
+          <input type="email" class="auth-input" id="upEmail" autocomplete="email" placeholder="you@example.com">
+          <label class="auth-label">Password (6+ characters)</label>
+          <input type="password" class="auth-input" id="upPass" autocomplete="new-password" placeholder="••••••••">
+          <button type="button" class="auth-submit" id="btnEmailSignUp">Create account</button>
+        </div>
+      </div>
+
+      <div id="authLoggedIn" class="auth-userbox" style="display:none;">
+        <p id="authUserEmail"></p>
+        <button type="button" class="auth-signout" id="btnSignOut">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://flex-production-c95d.up.railway.app";
+    const curatedSections = {
+      trending: [
+        { id: 157336, type: "movie", title: "Interstellar", year: 2014, img: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" },
+        { id: 27205, type: "movie", title: "Inception", year: 2010, img: "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg" },
+        { id: 299534, type: "movie", title: "Avengers: Endgame", year: 2019, img: "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg" },
+        { id: 155, type: "movie", title: "The Dark Knight", year: 2008, img: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+        { id: 238, type: "movie", title: "The Godfather", year: 1972, img: "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg" },
+        { id: 603, type: "movie", title: "The Matrix", year: 1999, img: "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg" },
+        { id: 680, type: "movie", title: "Pulp Fiction", year: 1994, img: "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg" },
+        { id: 13, type: "movie", title: "Forrest Gump", year: 1994, img: "https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg" }
+      ],
+      topPicks: [
+        { id: 550, type: "movie", title: "Fight Club", year: 1999, img: "https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg" },
+        { id: 11, type: "movie", title: "Star Wars", year: 1977, img: "https://image.tmdb.org/t/p/w500/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg" },
+        { id: 98, type: "movie", title: "Gladiator", year: 2000, img: "https://image.tmdb.org/t/p/w500/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg" },
+        { id: 278, type: "movie", title: "The Shawshank Redemption", year: 1994, img: "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg" },
+        { id: 120, type: "movie", title: "The Lord of the Rings", year: 2001, img: "https://image.tmdb.org/t/p/w500/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg" },
+        { id: 769, type: "movie", title: "GoodFellas", year: 1990, img: "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg" },
+        { id: 807, type: "movie", title: "Se7en", year: 1995, img: "https://image.tmdb.org/t/p/w500/6yoghtyTpznpBik8EngEmJskVUO.jpg" },
+        { id: 299536, type: "movie", title: "Avengers: Infinity War", year: 2018, img: "https://image.tmdb.org/t/p/w500/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg" }
+      ],
+      animeSeries: [
+        { id: 1429, type: "tv", title: "Attack on Titan", year: 2013, img: "https://image.tmdb.org/t/p/w500/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg" },
+        { id: 85937, type: "tv", title: "Demon Slayer", year: 2019, img: "https://image.tmdb.org/t/p/w500/wrCVHdkBlBWdJUZPvnJWcBRuhSY.jpg" },
+        { id: 37854, type: "tv", title: "One Piece", year: 1999, img: "https://image.tmdb.org/t/p/w500/e3NBGiAifW9Xt8xD5tpARskjccO.jpg" },
+        { id: 31910, type: "tv", title: "Naruto Shippuden", year: 2007, img: "https://image.tmdb.org/t/p/w500/zAYRe2bJxpWTVrwwmBc00VFkAf4.jpg" },
+        { id: 63926, type: "tv", title: "One Punch Man", year: 2015, img: "https://image.tmdb.org/t/p/w500/iE3s0lG5QVdEHOEZnoAxjmMtvne.jpg" },
+        { id: 60863, type: "tv", title: "Haikyuu!!", year: 2014, img: "https://image.tmdb.org/t/p/w500/8kOWDBK6XlPUzckuHDo3wwVRFwt.jpg" },
+        { id: 95479, type: "tv", title: "Jujutsu Kaisen", year: 2020, img: "https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
+        { id: 65930, type: "tv", title: "My Hero Academia", year: 2016, img: "https://image.tmdb.org/t/p/w500/phuYuzqWW9ru8EA3HVjE9W2Rr3M.jpg" }
+      ]
+    };
+
+    function createCard(item) {
+      const a = document.createElement("a");
+      a.className = "card";
+      a.href = `watch.html?id=${item.id}&type=${item.type}&title=${encodeURIComponent(item.title)}`;
+      a.innerHTML = `
+        <img class="poster" src="${item.img}" alt="${item.title}">
+        <div class="card-body">
+          <p class="title">${item.title}</p>
+          <p class="meta">${item.type.toUpperCase()} | ${item.year}</p>
+        </div>
+      `;
+      return a;
+    }
+
+    function loadCuratedSection(sectionId, items) {
+      const holder = document.getElementById(sectionId);
+      if (!holder) return;
+      holder.innerHTML = "";
+      items.forEach((item) => holder.appendChild(createCard(item)));
+    }
+
+    loadCuratedSection("trending", curatedSections.trending);
+    loadCuratedSection("topPicks", curatedSections.topPicks);
+    loadCuratedSection("animeSeries", curatedSections.animeSeries);
+
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const searchSection = document.getElementById("searchSection");
+    const searchResults = document.getElementById("searchResults");
+    const searchStatus = document.getElementById("searchStatus");
+    const liveSearchBox = document.getElementById("liveSearchBox");
+    let liveTimer = null;
+
+    function hideLiveSearch() {
+      liveSearchBox.style.display = "none";
+      liveSearchBox.innerHTML = "";
+    }
+
+    function renderLiveSearch(data) {
+      liveSearchBox.innerHTML = "";
+      if (!Array.isArray(data) || !data.length) {
+        hideLiveSearch();
+        return;
+      }
+
+      data.slice(0, 7).forEach((item) => {
+        const normalized = {
+          id: item.id,
+          type: item.type || item.media_type || "movie",
+          title: item.title || item.name || "Unknown",
+          img: item.image || "https://via.placeholder.com/88x124?text=No+Image"
+        };
+        const a = document.createElement("a");
+        a.className = "live-item";
+        a.href = `watch.html?id=${normalized.id}&type=${normalized.type}&title=${encodeURIComponent(normalized.title)}`;
+        a.innerHTML = `
+          <img src="${normalized.img}" alt="${normalized.title}">
+          <span>${normalized.title}<br>${normalized.type.toUpperCase()}</span>
+        `;
+        liveSearchBox.appendChild(a);
+      });
+
+      liveSearchBox.style.display = "block";
+    }
+
+    async function searchFromBackend(showLive = false) {
+      const q = searchInput.value.trim();
+      if (!q) {
+        searchSection.style.display = "none";
+        hideLiveSearch();
+        return;
+      }
+
+      searchSection.style.display = "block";
+      if (!showLive) {
+        searchResults.innerHTML = "";
+        searchStatus.textContent = "Searching from https://flex-production-c95d.up.railway.app ...";
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
+        if (!res.ok) throw new Error("Search failed");
+        const data = await res.json();
+
+        if (showLive) {
+          renderLiveSearch(data);
+        } else {
+          hideLiveSearch();
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+          searchStatus.textContent = "No result found.";
+          searchResults.innerHTML = "";
+          return;
+        }
+
+        searchResults.innerHTML = "";
+        data.forEach((item) => {
+          const normalized = {
+            id: item.id,
+            type: item.type || item.media_type || "movie",
+            title: item.title || item.name || "Unknown",
+            year: "Now",
+            img: item.image || "https://via.placeholder.com/300x450?text=No+Image"
+          };
+          searchResults.appendChild(createCard(normalized));
+        });
+
+        searchStatus.textContent = `Found ${data.length} results from server.`;
+      } catch (err) {
+        searchStatus.textContent = "Server offline? Start server: node server.js (port 3000).";
+        hideLiveSearch();
+      }
+    }
+
+    searchBtn.addEventListener("click", searchFromBackend);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchFromBackend();
+    });
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.trim();
+      if (liveTimer) clearTimeout(liveTimer);
+      if (q.length < 2) {
+        hideLiveSearch();
+        if (!q) searchSection.style.display = "none";
+        return;
+      }
+      liveTimer = setTimeout(() => searchFromBackend(true), 280);
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".search-wrap")) hideLiveSearch();
+    });
+
+    (function enableInspectRefreshGuard() {
+      const THRESHOLD = 160;
+      let refreshLock = false;
+
+      function isDevtoolsOpen() {
+        const bySize =
+          window.outerWidth - window.innerWidth > THRESHOLD ||
+          window.outerHeight - window.innerHeight > THRESHOLD;
+        return bySize;
+      }
+
+      setInterval(() => {
+        if (refreshLock) return;
+        if (isDevtoolsOpen()) {
+          refreshLock = true;
+          location.reload();
+        }
+      }, 333);
+    })();
+
+    const params = new URLSearchParams(location.search);
+    const q = params.get("q");
+    if (q) {
+      searchInput.value = q;
+      searchFromBackend();
+    }
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/watch-history.js"></script>
+  <script>
+    (function () {
+      if (typeof firebase === "undefined") return;
+
+      var modal = document.getElementById("authModal");
+      var authNavBtn = document.getElementById("authNavBtn");
+      var authBackdrop = document.getElementById("authBackdrop");
+      var authClose = document.getElementById("authClose");
+      var authErr = document.getElementById("authErr");
+      var authLoggedOut = document.getElementById("authLoggedOut");
+      var authLoggedIn = document.getElementById("authLoggedIn");
+      var authUserEmail = document.getElementById("authUserEmail");
+      var tabSignIn = document.getElementById("tabSignIn");
+      var tabSignUp = document.getElementById("tabSignUp");
+      var panelSignIn = document.getElementById("panelSignIn");
+      var panelSignUp = document.getElementById("panelSignUp");
+
+      function showErr(msg) {
+        authErr.textContent = msg || "";
+      }
+
+      function openModal() {
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+        showErr("");
+      }
+
+      function closeModal() {
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+        if (location.hash === "#auth") {
+          history.replaceState(null, "", location.pathname + location.search);
+        }
+      }
+
+      function updateModalForUser(user) {
+        if (user) {
+          authLoggedOut.style.display = "none";
+          authLoggedIn.style.display = "block";
+          authUserEmail.textContent = user.email || user.displayName || user.uid;
+        } else {
+          authLoggedOut.style.display = "block";
+          authLoggedIn.style.display = "none";
+        }
+      }
+
+      authNavBtn.addEventListener("click", function () {
+        openModal();
+      });
+      authBackdrop.addEventListener("click", closeModal);
+      authClose.addEventListener("click", closeModal);
+
+      tabSignIn.addEventListener("click", function () {
+        tabSignIn.classList.add("active");
+        tabSignUp.classList.remove("active");
+        panelSignIn.classList.add("active");
+        panelSignUp.classList.remove("active");
+        showErr("");
+      });
+      tabSignUp.addEventListener("click", function () {
+        tabSignUp.classList.add("active");
+        tabSignIn.classList.remove("active");
+        panelSignUp.classList.add("active");
+        panelSignIn.classList.remove("active");
+        showErr("");
+      });
+
+      document.getElementById("btnEmailSignIn").addEventListener("click", function () {
+        showErr("");
+        var email = document.getElementById("inEmail").value.trim();
+        var pass = document.getElementById("inPass").value;
+        if (!email || !pass) {
+          showErr("Email and password required.");
+          return;
+        }
+        firebase
+          .auth()
+          .signInWithEmailAndPassword(email, pass)
+          .catch(function (e) {
+            showErr(e.message || "Sign in failed.");
+          });
+      });
+
+      document.getElementById("btnEmailSignUp").addEventListener("click", function () {
+        showErr("");
+        var email = document.getElementById("upEmail").value.trim();
+        var pass = document.getElementById("upPass").value;
+        if (!email || pass.length < 6) {
+          showErr("Valid email and password (6+ characters).");
+          return;
+        }
+        firebase
+          .auth()
+          .createUserWithEmailAndPassword(email, pass)
+          .catch(function (e) {
+            showErr(e.message || "Sign up failed.");
+          });
+      });
+
+      document.getElementById("btnGoogle").addEventListener("click", function () {
+        showErr("");
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .catch(function (e) {
+            showErr(e.message || "Google sign-in failed.");
+          });
+      });
+
+      document.getElementById("btnSignOut").addEventListener("click", function () {
+        firebase.auth().signOut();
+        closeModal();
+      });
+
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          authNavBtn.textContent = user.email || user.displayName || "Account";
+        } else {
+          authNavBtn.textContent = "Sign In";
+        }
+        updateModalForUser(user);
+        var row = document.getElementById("continueRow");
+        if (user && typeof loadContinueWatchingRow === "function") {
+          loadContinueWatchingRow(row, function () {
+            var sec = document.getElementById("continueSection");
+            if (sec) sec.style.display = "none";
+          });
+        } else {
+          var sec = document.getElementById("continueSection");
+          if (sec) sec.style.display = "none";
+        }
+      });
+
+      function openFromHash() {
+        if (location.hash === "#auth") openModal();
+      }
+      window.addEventListener("hashchange", openFromHash);
+      openFromHash();
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+      });
+    })();
+  </script>
+</body>
+</html>

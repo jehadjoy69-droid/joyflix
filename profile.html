@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - JOYFLIX</title>
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --bg-soft: #1a1a1f;
+      --text: #ffffff;
+      --muted: #b3b3b3;
+      --red: #e50914;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      background: linear-gradient(to bottom, #000000f2, #00000080);
+      backdrop-filter: blur(3px);
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: 1px;
+    }
+
+    .menu {
+      display: flex;
+      gap: 18px;
+      color: #dddddd;
+      font-size: 14px;
+      align-items: center;
+    }
+
+    .section {
+      padding: 24px 32px 0;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--bg-soft);
+      border-radius: 10px;
+      overflow: hidden;
+      text-decoration: none;
+      color: #fff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid #2b2b33;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px #00000080;
+    }
+
+    .poster {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      display: block;
+      background: #1b1b1b;
+    }
+
+    .card-body {
+      padding: 10px;
+    }
+
+    .title {
+      margin: 0 0 6px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer-space {
+      height: 30px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .menu {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .section {
+        padding: 16px;
+      }
+
+      .row {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+      }
+
+      .card-body {
+        padding: 8px;
+      }
+
+      .title {
+        font-size: 13px;
+      }
+
+      .meta {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .row {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
+
+      .logo {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="logo">JOYFLIX</a>
+  </header>
+
+  <section class="section" id="continueSection" style="display:none;">
+    <h2>Continue Watching</h2>
+    <div class="row" id="continueRow"></div>
+  </section>
+
+  <section class="section">
+    <h2>Watch History</h2>
+    <div class="row" id="historyRow"></div>
+    <p class="status" id="historyStatus"></p>
+  </section>
+
+  <div class="footer-space"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/watch-history.js"></script>
+  <script>
+    const TMDB_KEY = "70e72ab91e1180976a71072fbcf313db";
+    const TMDB_BASE = "https://api.themoviedb.org/3";
+
+    function createCard(item) {
+      const a = document.createElement("a");
+      a.className = "card";
+      a.href = `watch.html?id=${item.id}&type=${item.type}&title=${encodeURIComponent(item.title)}`;
+      a.innerHTML = `
+        <img class="poster" src="${item.img}" alt="${item.title}">
+        <div class="card-body">
+          <p class="title">${item.title}</p>
+          <p class="meta">${item.type.toUpperCase()} | ${item.year || 'N/A'}</p>
+        </div>
+      `;
+      return a;
+    }
+
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        document.getElementById('historyRow').innerHTML = '<p>Please sign in to view your watch history.</p>';
+        return;
+      }
+
+      const db = firebase.firestore();
+      const snap = await db.collection("users").doc(user.uid).collection("watchHistory").get();
+      if (!snap.size) {
+        document.getElementById('historyRow').innerHTML = '<p>No watch history yet.</p>';
+        return;
+      }
+
+      const items = [];
+      snap.forEach(doc => {
+        items.push({ id: doc.id, data: doc.data() });
+      });
+      items.sort((a, b) => (b.data.updatedAt?.toMillis() || 0) - (a.data.updatedAt?.toMillis() || 0));
+
+      const row = document.getElementById('historyRow');
+      row.innerHTML = '';
+
+      for (const item of items) {
+        const d = item.data;
+        const type = d.mediaType;
+        const mid = d.mediaId;
+
+        let img = "https://via.placeholder.com/300x450?text=No+Image";
+        let year = "N/A";
+        try {
+          const res = await fetch(`${TMDB_BASE}/${type}/${mid}?api_key=${TMDB_KEY}`);
+          const data = await res.json();
+          if (data.poster_path) img = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
+          year = (type === 'tv' ? data.first_air_date : data.release_date)?.slice(0, 4) || "N/A";
+        } catch (e) {
+          console.warn('Failed to fetch details', e);
+        }
+
+        const cardItem = {
+          id: mid,
+          type: type,
+          title: d.title || "Untitled",
+          img: img,
+          year: year
+        };
+        row.appendChild(createCard(cardItem));
+      }
+
+      // Also load continue watching if needed
+      var continueRow = document.getElementById("continueRow");
+      if (continueRow && typeof loadContinueWatchingRow === "function") {
+        loadContinueWatchingRow(continueRow, function () {
+          var sec = document.getElementById("continueSection");
+          if (sec) sec.style.display = "none";
+        });
+      }
+    });
+  </script>
+</body>
+</html></content>
